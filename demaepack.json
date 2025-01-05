@@ -1,0 +1,20 @@
+{
+    "id": "DemaePack",
+    "name": "Demae Pack",
+    "display_name": "Demae Pack",
+    "author": [
+        "Kaaskop",
+        "ShadowJonathan"
+    ],
+    "description": "Balatro additions based on the shenanigans of Demae.",
+    "prefix": "dp",
+    "main_file": "main.lua",
+    "priority": 0,
+    "badge_colour": "F26900",
+    "badge_text_colour": "FFFFFF",
+    "version": "0.1.0~",
+    "dependencies": [
+        "Steamodded (>=1.*)",
+        "Lovely (>=0.6)"
+    ]
+}
