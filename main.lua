@@ -162,16 +162,35 @@ local jokers = {
     },
 
     food_delivery = {
-        name = "Food Delivery",
         sprite = SP .. "fooddelivery",
         rarity = 2,
         blueprint_compat = true,
         cost = 4,
 
+        config = { extra = { repetitions = 1 } },
+
+        loc_txt = {
+            name = "Food Delivery",
+            text = {
+                "Retrigger all {C:attention}face cards",
+                "played during boss blind"
+            }
+        },
+
         -- Retrigger all face cards played during Boss Blind
+        calculate = function(self, card, context)
+            if context.cardarea == G.play and context.repetition and not context.repetition_only then
+                -- If we are currently collecting repetitions...
 
-        -- TODO
-
+                if G.GAME.blind.boss and context.other_card:is_face() then
+                    return {
+                        message = localize('k_again_ex'),
+                        repetitions = card.ability.extra.repetitions,
+                        card = context.other_card
+                    }
+                end
+            end
+        end
     },
 
     nijntje = {
