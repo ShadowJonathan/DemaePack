@@ -1,3 +1,5 @@
+local ENABLE_LOGO = true
+
 local SP = "j_dp_"
 
 local jokers = {
@@ -451,4 +453,14 @@ for joker_id, joker_def in pairs(jokers) do
     joker_def.key = joker_id
 
     SMODS.Joker(joker_def)
+end
+
+if ENABLE_LOGO then
+    SMODS.Atlas {
+        key = "balatro",
+        path = "Logo.png",
+        px = 333,
+        py = 216,
+        prefix_config = { key = false }
+    }
 end
