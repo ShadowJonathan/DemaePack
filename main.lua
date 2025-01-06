@@ -347,16 +347,35 @@ local jokers = {
     },
 
     jester_klein = {
-        name = "Jester Klein",
         sprite = SP .. "jesterklein",
         rarity = 2,
         blueprint_compat = true,
         cost = 4,
 
+        config = { extra = { repetitions = 1 } },
+
+        loc_txt = {
+            name = "Jester Klein",
+            text = {
+                "Retrigger all",
+                "{C:diamonds}Diamond{} cards"
+            }
+        },
+
         -- Retrigger all Diamond cards
+        calculate = function(self, card, context)
+            if context.cardarea == G.play and context.repetition and not context.repetition_only then
+                -- If we are currently collecting repetitions...
 
-        -- TODO
-
+                if context.other_card:is_suit("Diamonds") then
+                    return {
+                        message = localize('k_again_ex'),
+                        repetitions = card.ability.extra.repetitions,
+                        card = context.other_card
+                    }
+                end
+            end
+        end
     },
 
     efficient_budgeting = {
