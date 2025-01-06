@@ -379,15 +379,55 @@ local jokers = {
     },
 
     efficient_budgeting = {
-        name = "Efficient Budgeting",
         sprite = SP .. "efficientbudgeting",
         rarity = 3,
         blueprint_compat = true,
         cost = 8,
 
-        -- -30$ for every played ace, x5 Mult
+        config = { extra = { Xmult = 5, money = -30 } },
 
-        -- TODO
+        loc_txt = {
+            name = "Efficient Budgeting",
+            text = {
+                "{X:mult,C:white} X#1# {} Mult and {C:red}-$#2#{}",
+                "for every played {C:attention}Ace{}"
+            }
+        },
+        loc_vars = function(self, info_queue, card)
+            return { vars = { card.ability.extra.Xmult, -card.ability.extra.money } }
+        end,
+
+        -- x5 Mult and -30$ for every played ace
+        calculate = function(self, card, context)
+            if context.joker_main then
+                local xacc = 0
+                local macc = 0
+
+                for i = 1, #context.scoring_hand do
+                    if context.scoring_hand[i]:get_id() == 14 then
+                        xacc = xacc + card.ability.extra.Xmult
+                        macc = macc + card.ability.extra.money
+                    end
+                end
+
+                if xacc > 0 then
+                    local this_card = context.blueprint_card or card
+
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            this_card:juice_up()
+                            ease_dollars(macc)
+                            return true
+                        end
+                    }))
+
+                    return {
+                        Xmult_mod = xacc,
+                        message = "Bezuiniging!",
+                    }
+                end
+            end
+        end
 
     }
 }
