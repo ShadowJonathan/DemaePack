@@ -175,16 +175,76 @@ local jokers = {
     },
 
     nijntje = {
-        name = "Nijntje",
         sprite = SP .. "nijntje",
         rarity = 2,
-        blueprint_compat = true,
+        blueprint_compat = false,
         cost = 4,
 
-        -- Add +1 Mult for every failed Wheel of Fortune
+        config = { extra = { mult = 1 }, mult = 1 },
 
-        -- TODO
+        loc_txt = {
+            name = "Nijntje",
+            text = {
+                "This joker gains",
+                "{C:mult}+#1#{} Mult for every",
+                "failed {C:attention}Wheel of Fortune{}",
+                "{C:inactive}(Currently {C:mult}+#2#{C:inactive} Mult)"
+            }
+        },
 
+        loc_vars = function(self, info_queue, card)
+            return { vars = { card.ability.extra.mult, card.ability.mult } }
+        end,
+
+        -- This joker gains +1 Mult for every failed Wheel of Fortune
+        calculate = function(self, card, context)
+            if context.joker_main then
+                return {
+                    mult_mod = card.ability.mult,
+                    message = localize { type = 'variable', key = 'a_mult', vars = { card.ability.mult } },
+                }
+            elseif context.using_consumeable and not context.blueprint and context.consumeable.ability.name == 'The Wheel of Fortune' then
+                sendDebugMessage("Detected use of Wheel", "NijntjeCard")
+
+                local aimed_jokers = {}
+
+                for k, v in pairs(context.consumeable.eligible_strength_jokers) do
+                    aimed_jokers[k] = v
+                end
+
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0,
+                    blocking = false,
+                    blockable = true,
+                    func = function()
+                        local succeeded = false
+
+                        for k, v in pairs(aimed_jokers) do
+                            if v.edition then
+                                succeeded = true
+                            end
+                        end
+
+                        if not succeeded then
+                            sendDebugMessage("Wheel failed, adding mult", "NijntjeCard")
+
+                            card.ability.mult = card.ability.mult + card.ability.extra.mult
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    card_eval_status_text(card, 'extra', nil, nil, nil,
+                                        { message = localize { type = 'variable', key = 'a_mult', vars = { card.ability.extra.mult } } }); return true
+                                end
+                            }))
+                        else
+                            sendDebugMessage("Wheel succeeded, NOT adding mult", "NijntjeCard")
+                        end
+
+                        return true
+                    end
+                }))
+            end
+        end
     },
 
     jo_ker = {
