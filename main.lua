@@ -312,7 +312,7 @@ for joker_id, joker_def in pairs(jokers) do
 
         SMODS.Atlas {
             key = sprite,
-            path = sprite .. ".png",
+            path = "jokers/" .. sprite .. ".png",
             px = 71,
             py = 97
         }
