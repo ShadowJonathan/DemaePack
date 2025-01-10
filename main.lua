@@ -430,8 +430,115 @@ local jokers = {
                 end
             end
         end
+    },
 
-    }
+    chipkaart = {
+        sprite = SP .. "chipkaart",
+        rarity = 2,
+        blueprint_compat = false,
+        cost = 4,
+
+        config = { charge = 4 },
+
+        loc_txt = {
+            name = "OV-Chipkaart",
+            text = {
+                "Playing a single {C:attention}numbered card{}",
+                "will {X:attention,C:white}charge{} that amount (with your money, {C:red}-${}),",
+                -- "any other hand will",
+                "else, convert {X:attention,C:white}charge * 0.5{} as {X:mult,C:white} X-Mult {}.",
+                "{C:inactive}(Current charge: {C:money}$#1#{C:inactive}, next X-Mult: {X:mult,C:white} X#2# {C:inactive})"
+            }
+        },
+
+
+        loc_vars = function(self, info_queue, card)
+            return { vars = { card.ability.charge, card.ability.charge / 2 } }
+        end,
+
+        calculate = function(self, card, context)
+            if context.joker_main and not context.blueprint then
+                local number = nil
+
+                if #context.scoring_hand == 1 then
+                    local card_id = context.scoring_hand[1]:get_id()
+
+                    if card_id >= 2 and card_id <= 10 then
+                        number = card_id
+                    end
+                end
+
+                if number then
+                    -- charge up
+
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            card:juice_up()
+                            ease_dollars(-number)
+                            return true
+                        end
+                    }))
+
+                    card.ability.charge = card.ability.charge + number
+
+                    return {
+                        message = "Charged!",
+                    }
+                else
+                    -- use
+
+                    local half = card.ability.charge / 2
+
+                    card.ability.charge = card.ability.charge - half
+
+                    return {
+                        Xmult_mod = half,
+                        message = localize { type = 'variable', key = 'a_xmult', vars = { half } },
+                    }
+                end
+            end
+        end
+
+    },
+
+    rookworst = {
+        sprite = SP .. "rookworst",
+        rarity = 1,
+        blueprint_compat = true,
+        cost = 2,
+
+    },
+
+    neocat = {
+        sprite = SP .. "neocat",
+        rarity = 3,
+        blueprint_compat = true,
+        cost = 8,
+
+        config = { extra = { mult = 1, chips = 1 } },
+
+        loc_txt = {
+            name = "Neocat",
+            text = {
+                "meow :3",
+                -- "{C:inactive}({C:mult}+#1#{C:inactive} Mult and {C:chips}+#2#{C:inactive} Chips){}"
+            }
+        },
+
+        -- loc_vars = function(self, info_queue, card)
+        --    return { vars = { card.ability.extra.mult, card.ability.extra.chips } }
+        -- end,
+
+        calculate = function(self, card, context)
+            if context.joker_main then
+                return {
+                    message = ":3",
+                    mult_mod = card.ability.extra.mult,
+                    chip_mod = card.ability.extra.chips,
+                }
+            end
+        end
+    },
 }
 
 for joker_id, joker_def in pairs(jokers) do
