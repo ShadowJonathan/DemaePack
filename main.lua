@@ -504,8 +504,47 @@ local jokers = {
     rookworst = {
         sprite = SP .. "rookworst",
         rarity = 1,
-        blueprint_compat = true,
+        blueprint_compat = false,
         cost = 2,
+
+        config = { extra = { price = 2.5, mult = 2 } },
+
+        loc_txt = {
+            name = "Rookworst",
+            text = {
+                "On {C:attention}final hand{},",
+                "{X:mult,C:white} X#1# {} Mult and {C:red}-$#2#{},",
+                "then {C:red}self destructs{}"
+            }
+        },
+
+        loc_vars = function(self, info_queue, card)
+            return { vars = { card.ability.extra.mult, card.ability.extra.price } }
+        end,
+
+        -- last hand, adds x2 mult to the score, subtracts $[price of average rookworst], selfdestructs afterwards
+        calculate = function(self, card, context)
+            if context.joker_main and not context.blueprint and G.GAME.current_round.hands_left == 0 then
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        card:juice_up()
+                        ease_dollars(-card.ability.extra.price)
+                        G.E_MANAGER:add_event(Event {
+                            func = function()
+                                card:start_dissolve()
+                                return true
+                            end
+                        })
+                        return true
+                    end
+                }))
+
+                return {
+                    Xmult_mod = card.ability.extra.mult,
+                    message = localize { type = 'variable', key = 'a_xmult', vars = { card.ability.extra.mult } },
+                }
+            end
+        end
 
     },
 
